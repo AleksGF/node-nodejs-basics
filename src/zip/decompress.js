@@ -24,6 +24,12 @@ const decompress = async () => {
     const rs = srcHandler.createReadStream();
     const ws = distHandler.createWriteStream();
 
+    ws.on('finish', async () => {
+      await srcHandler.close();
+      await distHandler.close();
+      await fsPromises.rm(srcPath);
+    });
+
     await pipeline(rs, unzip, ws);
 
     console.log('Success: File Decompressed');

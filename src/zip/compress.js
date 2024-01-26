@@ -24,6 +24,12 @@ const compress = async () => {
     const rs = srcHandler.createReadStream();
     const ws = distHandler.createWriteStream();
 
+    ws.on('finish', async () => {
+      await srcHandler.close();
+      await distHandler.close();
+      await fsPromises.rm(srcPath);
+    });
+
     await pipeline(rs, gzip, ws);
 
     console.log('Success: File Compressed');
