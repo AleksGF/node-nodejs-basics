@@ -1,5 +1,5 @@
 import path from 'path';
-import { fileURLToPath } from 'url';
+import {fileURLToPath} from 'url';
 import fsPromises from 'fs/promises';
 
 const copy = async () => {
@@ -12,15 +12,29 @@ const copy = async () => {
   const srcPath = path.join(__dirname, srcFolder);
   const distPath = path.join(__dirname, distFolder);
 
+  const copyFolder = async (srcPath, distPath) => {
+    await fsPromises.mkdir(distPath);
+
+    const files = await fsPromises.readdir(srcPath);
+
+    for (const file of files) {
+      const stats = await fsPromises.stat(`${srcPath}/${file}`);
+
+      const srcFilePath = path.join(srcPath, file);
+      const distFilePath = path.join(distPath, file);
+
+      if (stats.isDirectory()) {
+        await copyFolder(srcFilePath, distFilePath);
+      } else {
+        await fsPromises.copyFile(srcFilePath, distFilePath);
+      }
+    }
+  };
+
   try {
-    await fsPromises.cp(srcPath, distPath, {
-      errorOnExist: true,
-      force: false,
-      recursive: true,
-    });
-    console.log('Folder copied');
+    await copyFolder(srcPath, distPath);
   } catch (error) {
-    if (error.code === 'ERR_FS_CP_EEXIST' || error.code === 'ENOENT') {
+    if (error.code === 'EEXIST') {
       throw new Error(errorMessage);
     } else {
       console.error(error);
