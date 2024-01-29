@@ -13,9 +13,9 @@ const copy = async () => {
   const distPath = path.join(__dirname, distFolder);
 
   const copyFolder = async (srcPath, distPath) => {
-    await fsPromises.mkdir(distPath);
-
     const files = await fsPromises.readdir(srcPath);
+
+    await fsPromises.mkdir(distPath);
 
     for (const file of files) {
       const stats = await fsPromises.stat(`${srcPath}/${file}`);
@@ -34,7 +34,7 @@ const copy = async () => {
   try {
     await copyFolder(srcPath, distPath);
   } catch (error) {
-    if (error.code === 'EEXIST') {
+    if (error.code === 'EEXIST' || error.code === 'ENOENT') {
       throw new Error(errorMessage);
     } else {
       console.error(error);
